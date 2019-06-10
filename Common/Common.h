@@ -1311,6 +1311,9 @@ public:
     void SetVerbose(bool b) { _fVerbose = b; }
     bool GetVerbose() const { return _fVerbose; }
 
+    void SetDbgOutput(bool b) { _fDbgOutput = b; }
+    bool GetDbgOutput() const { return _fDbgOutput; }
+
     void SetProgress(DWORD dwProgress) { _dwProgress = dwProgress; }
     DWORD GetProgress() const { return _dwProgress; }
 
@@ -1361,6 +1364,7 @@ private:
 
     vector<TimeSpan>_vTimeSpans;
     bool _fVerbose;
+    bool _fDbgOutput;
     DWORD _dwProgress;
     string _sCmdLine;
     ResultsFormat _resultsFormat;

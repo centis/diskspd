@@ -60,4 +60,5 @@ private:
     
     HRESULT _GetVerbose(IXMLDOMDocument2 *pXmlDoc, bool *pfVerbose);
     HRESULT _GetProgress(IXMLDOMDocument2 *pXmlDoc, DWORD *pdwProgress);
+    HRESULT _GetDbgOutput(IXMLDOMDocument2* pXmlDoc, bool* pfDbgOutput);
 };
