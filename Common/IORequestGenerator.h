@@ -28,7 +28,8 @@ SOFTWARE.
 */
 
 #pragma once
-#define INITGUID        //Include this #define to use SystemTraceControlGuid in Evntrace.h.
+
+//#define INITGUID        //Include this #define to use SystemTraceControlGuid in Evntrace.h.
 #include <Evntrace.h>   //ETW
 #include <Winternl.h>   //ntdll.dll
 

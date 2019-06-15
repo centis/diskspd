@@ -28,6 +28,7 @@ SOFTWARE.
 */
 
 #pragma once
+
 #include "Common.h"
 
 namespace UnitTests { class CmdLineParserUnitTests; }

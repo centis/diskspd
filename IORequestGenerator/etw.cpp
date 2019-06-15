@@ -27,15 +27,13 @@ SOFTWARE.
 
 */
 
-#include "etw.h"
-#include "common.h"
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <Wmistr.h>     //WNODE_HEADER
+#include "Common.h"
 
 #define INITGUID        //Include this #define to use SystemTraceControlGuid in Evntrace.h.
-#include <Evntrace.h>   //ETW
+#include "etw.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "IORequestGenerator.h"
 

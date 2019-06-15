@@ -30,11 +30,11 @@ SOFTWARE.
 // CmdRequestCreator.cpp : Defines the entry point for the console application.
 //
 
+#include "Common.h"
 #include "CmdRequestCreator.h"
-#include <windows.h>
+
 #include <stdlib.h>
 #include <assert.h>
-#include "common.h"
 #include "errors.h"
 #include "CmdLineParser.h"
 #include "XmlProfileParser.h"

@@ -37,7 +37,6 @@ SOFTWARE.
 #include <stdlib.h>
 #include <Winternl.h>   //ntdll.dll
 
-#include <Wmistr.h>     //WNODE_HEADER
 #include <Evntrace.h>
 
 #include <assert.h>

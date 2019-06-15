@@ -35,11 +35,7 @@ SOFTWARE.
 #include <sstream>
 #include <limits>
 #include <cmath>
-
-#pragma push_macro("min")
-#pragma push_macro("max")
-#undef min
-#undef max
+#include <algorithm>
 
 template<typename T>
 class Histogram
@@ -120,32 +116,32 @@ class Histogram
 
     T GetMin() const
     { 
-        T min(std::numeric_limits<T>::max());
+        T value = std::numeric_limits<T>::max();
 
         for (auto i : _data)
         {
-            if (i.first < min)
+            if (i.first < value)
             {
-                min = i.first;
+                value = i.first;
             }
         }
 
-        return min;
+        return value;
     }
 
     T GetMax() const
     {
-        T max(std::numeric_limits<T>::min());
+        T value = std::numeric_limits<T>::min();
 
         for (auto i : _data)
         {
-            if (i.first > max) 
+            if (i.first > value)
             {
-                max = i.first;
+                value = i.first;
             }
         }
 
-        return max;
+        return value;
     }
 
     unsigned GetSampleSize() const 
@@ -296,6 +292,3 @@ class Histogram
         return os.str();
     }
 };
-
-#pragma pop_macro("min")
-#pragma pop_macro("max")

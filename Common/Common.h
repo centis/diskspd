@@ -29,13 +29,12 @@ SOFTWARE.
 
 #pragma once
 
-#include <windows.h>
+#include "MinWindows.h"
+
 #include <TraceLoggingProvider.h>
 #include <TraceLoggingActivity.h>
-#include <evntrace.h>
 #include <ctime>
 #include <vector>
-#include <Winternl.h>   //ntdll.dll
 #include <assert.h>
 #include "Histogram.h"
 #include "IoBucketizer.h"

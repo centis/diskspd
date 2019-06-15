@@ -28,7 +28,8 @@ SOFTWARE.
 */
 
 #pragma once
-#include <Windows.h>
+
+#include "MinWindows.h"
 
 // ThroughputMeter class assists in metering out throughput over
 // time.  The meter is started by calling Start() with the throughput

@@ -34,16 +34,15 @@ SOFTWARE.
 #define _WIN32_WINNT 0x0601
 #endif
 
-#include "common.h"
+#include "Common.h"
 #include "IORequestGenerator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <Winioctl.h>   //DISK_GEOMETRY
-#include <windows.h>
-#include <stddef.h>
 
-#include <Wmistr.h>     //WNODE_HEADER
+#include <Winioctl.h>   //DISK_GEOMETRY
+#include <stddef.h>
+#include <algorithm>
 
 #include "etw.h"
 #include <assert.h>
@@ -2765,7 +2764,7 @@ vector<struct IORequestGenerator::CreateFileParameters> IORequestGenerator::_Get
             bool fConstantZeroWriteBuffers = true;
             for (auto file : fileMapEntry.second)
             {
-                ullMaxSize = max(ullMaxSize, file.ullFileSize);
+                ullMaxSize = std::max(ullMaxSize, file.ullFileSize);
                 if (ullLastNonZeroSize == 0)
                 {
                     ullLastNonZeroSize = file.ullFileSize;

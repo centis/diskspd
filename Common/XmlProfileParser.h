@@ -28,8 +28,9 @@ SOFTWARE.
 */
 
 #pragma once
-#include <MsXml6.h>
+
 #include "Common.h"
+#include <MsXml6.h>
 
 class XmlProfileParser
 {

@@ -28,6 +28,8 @@ SOFTWARE.
 */
 
 #include "Common.h"
+#include "etw.h"
+#include <algorithm>
 
 TRACELOGGING_DEFINE_PROVIDER(g_hEtwProvider,
                              "Microsoft-Windows-DiskSpd", // {CA13DB84-D0A9-5145-FCA4-468DA92FDC2D}
@@ -448,7 +450,7 @@ bool Target::_FillRandomDataWriteBuffer(Random *pRand)
             bool fReadSuccess = true;
             while (fReadSuccess && cbLeftToRead > 0)
             {
-                DWORD cbToRead = static_cast<DWORD>(min(64 * 1024, cbLeftToRead));
+                DWORD cbToRead = static_cast<DWORD>(std::min(64ull * 1024, cbLeftToRead));
                 DWORD cbRead;
                 fReadSuccess = ((ReadFile(hFile, pBuffer, cbToRead, &cbRead, nullptr) == TRUE) && (cbRead > 0));
                 pBuffer += cbRead;

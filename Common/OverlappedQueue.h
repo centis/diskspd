@@ -28,7 +28,8 @@ SOFTWARE.
 */
 
 #pragma once
-#include <Windows.h>
+
+#include "MinWindows.h"
 
 //
 // OverlappedQueue is a simple class that implements a queue for OVERLAPPED elements

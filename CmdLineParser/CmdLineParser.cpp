@@ -27,8 +27,9 @@ SOFTWARE.
 
 */
 
-#include "CmdLineParser.h"
 #include "Common.h"
+
+#include "CmdLineParser.h"
 #include "XmlProfileParser.h"
 #include <assert.h>
 #include <stdio.h>
