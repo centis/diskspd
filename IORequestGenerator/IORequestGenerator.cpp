@@ -2118,7 +2118,17 @@ bool IORequestGenerator::GenerateRequests(Profile& profile, IResultParser& resul
         SystemInformation system;
         EtwResultParser::ParseResults(vResults);
         string sResults = resultParser.ParseResults(profile, system, vResults);
-        print("%s", sResults.c_str());
+        std::string sResultFilePath = profile.GetResultFilePath();
+        if (sResultFilePath.empty())
+        {
+            print("%s", sResults.c_str());
+        }
+        else
+        {
+            std::ofstream out(sResultFilePath);
+            out << sResults;
+            out.close();
+        }
     }
 
     return fOk;
@@ -2646,7 +2656,6 @@ bool IORequestGenerator::_GenerateRequestsForTimeSpan(const Profile& profile, co
         Sleep(10);    //FUTURE EXTENSION: a timeout should be implemented
     }
 #pragma warning( pop )
-
 
     //check if there has been an error during threads execution
     if (g_bThreadError)

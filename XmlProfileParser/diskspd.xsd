@@ -246,6 +246,9 @@
           </xs:simpleType>
         </xs:element>
 
+        <!-- std::string _sResultFilePath-->
+        <xs:element name="ResultFilePath" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+
         <!-- ETWMask -->
         <xs:element name="ETW" minOccurs="0" maxOccurs="1">
           <xs:complexType>

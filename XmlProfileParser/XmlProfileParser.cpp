@@ -34,43 +34,43 @@ SOFTWARE.
 #include <assert.h>
 
 HRESULT ReportXmlError(
-	const char *pszName,
-	IXMLDOMParseError *pXMLError
-	)
+    const char *pszName,
+    IXMLDOMParseError *pXMLError
+    )
 {
-	long line;
-	long linePos;
-	long errorCode = E_FAIL;
-	CComBSTR bReason;
-	BSTR bstr;
-	HRESULT hr;
+    long line;
+    long linePos;
+    long errorCode = E_FAIL;
+    CComBSTR bReason;
+    BSTR bstr;
+    HRESULT hr;
 
-	hr = pXMLError->get_line(&line);
-	if (FAILED(hr))
-	{
-		line = 0;
-	}
-	hr = pXMLError->get_linepos(&linePos);
-	if (FAILED(hr))
-	{
-		linePos = 0;
-	}
-	hr = pXMLError->get_errorCode(&errorCode);
-	if (FAILED(hr))
-	{
-		errorCode = E_FAIL;
-	}
-	hr = pXMLError->get_reason(&bstr);
-	if (SUCCEEDED(hr))
-	{
-		bReason.Attach(bstr);
-	}
+    hr = pXMLError->get_line(&line);
+    if (FAILED(hr))
+    {
+        line = 0;
+    }
+    hr = pXMLError->get_linepos(&linePos);
+    if (FAILED(hr))
+    {
+        linePos = 0;
+    }
+    hr = pXMLError->get_errorCode(&errorCode);
+    if (FAILED(hr))
+    {
+        errorCode = E_FAIL;
+    }
+    hr = pXMLError->get_reason(&bstr);
+    if (SUCCEEDED(hr))
+    {
+        bReason.Attach(bstr);
+    }
 
-	fprintf(stderr,
-		"ERROR: failed to load %s, line %lu, line position %lu, errorCode %08x\nERROR: reason: %S\n",
-		pszName, line, linePos, errorCode, (PWCHAR)bReason);
+    fprintf(stderr,
+        "ERROR: failed to load %s, line %lu, line position %lu, errorCode %08x\nERROR: reason: %S\n",
+        pszName, line, linePos, errorCode, (PWCHAR)bReason);
 
-	return errorCode;
+    return errorCode;
 }
 
 bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE hModule)
@@ -88,7 +88,7 @@ bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE
     
     // convert from utf-8 produced by the xsd authoring tool to utf-16
     int cchSchemaXml = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)pSchemaXml, -1, NULL, 0);
-	vector<WCHAR> vWideSchemaXml(cchSchemaXml);
+    vector<WCHAR> vWideSchemaXml(cchSchemaXml);
     int dwcchWritten = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)pSchemaXml, -1, vWideSchemaXml.data(), cchSchemaXml);
     UNREFERENCED_PARAMETER(dwcchWritten);
     assert(dwcchWritten == cchSchemaXml);
@@ -149,7 +149,7 @@ bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE
                 hr = E_FAIL;
             }
         }
-		if (SUCCEEDED(hr))
+        if (SUCCEEDED(hr))
         {
             CComVariant vXmlSchema(spXmlSchema);
             CComBSTR bNull("");
@@ -203,6 +203,16 @@ bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE
                 if (SUCCEEDED(hr) && (hr != S_FALSE) && sResultFormat == "xml")
                 {
                     pProfile->SetResultsFormat(ResultsFormat::Xml);
+                }
+            }
+
+            if (SUCCEEDED(hr))
+            {
+                std::string sResultFilePath;
+                hr = _GetString(spXmlDoc, "//Profile/ResultFilePath", &sResultFilePath);
+                if (SUCCEEDED(hr) && (hr != S_FALSE))
+                {
+                    pProfile->SetResultFilePath(sResultFilePath);
                 }
             }
 

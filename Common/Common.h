@@ -1326,6 +1326,9 @@ public:
     void SetResultsFormat(ResultsFormat format) { _resultsFormat = format; }
     ResultsFormat GetResultsFormat() const { return _resultsFormat; }
 
+    void SetResultFilePath(const std::string& sResultFilePath) { _sResultFilePath = sResultFilePath; }
+    std::string GetResultFilePath() const { return _sResultFilePath; }
+
     void SetPrecreateFiles(PrecreateFiles c) { _precreateFiles = c; }
     PrecreateFiles GetPrecreateFiles() const { return _precreateFiles; }
 
@@ -1373,6 +1376,7 @@ private:
     DWORD _dwProgress;
     string _sCmdLine;
     ResultsFormat _resultsFormat;
+    std::string _sResultFilePath;
     PrecreateFiles _precreateFiles;
     ConstHistogramBucketListPtr _vHistogramBucketList;
 

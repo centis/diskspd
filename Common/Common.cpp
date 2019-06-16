@@ -650,6 +650,11 @@ string Profile::GetXml() const
         sXml += "<ResultFormat>* UNSUPPORTED *</ResultFormat>\n";
     }
 
+    if (!_sResultFilePath.empty())
+    {
+        sXml += "<ResultFilePath>" + _sResultFilePath + "</ResultFilePath>\n";
+    }
+
     sXml += _fVerbose ? "<Verbose>true</Verbose>\n" : "<Verbose>false</Verbose>\n";
     if (_precreateFiles == PrecreateFiles::UseMaxSize)
     {

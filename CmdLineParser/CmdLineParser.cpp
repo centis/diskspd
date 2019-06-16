@@ -196,6 +196,7 @@ void CmdLineParser::_DisplayUsageInfo(const char *pszFilename) const
     printf("                          completed I/O operations, counted separately by each thread \n");
     printf("  -r<align>[K|M|G|b]    random I/O aligned to <align> in bytes/KiB/MiB/GiB/blocks (overrides -s)\n");
     printf("  -R<text|xml>          output format. Default is text.\n");
+    printf("  -RF<filepath>         output file path.  Default is StdOut.\n");
     printf("  -s[i]<size>[K|M|G|b]  sequential stride size, offset between subsequent I/O operations\n");
     printf("                          [default access=non-interlocked sequential, default stride=block size]\n");
     printf("                          In non-interlocked mode, threads do not coordinate, so the pattern of offsets\n");
@@ -1005,8 +1006,21 @@ bool CmdLineParser::_ReadParametersFromCmdLine(const int argc, const char *argv[
             }
             break;
 
-        case 'R':    //custom result parser
-            if (0 != *(arg + 1))
+        case 'R':    //	Custom result parser or output file
+            if (*(arg + 1) == 'F')	//	Custom results output file
+            {
+                const char* pszArg = arg + 1;
+                if (*(arg + 1) != '\0')
+                {
+                    pProfile->SetResultFilePath(pszArg);
+                }
+                else
+                {
+                    fError = true;
+                    fprintf(stderr, "Invalid results file path: '%s'.\n", pszArg);
+                }
+            }
+            else if (0 != *(arg + 1))
             {
                 const char* pszArg = arg + 1;
                 if (strcmp(pszArg, "xml") == 0)
