@@ -153,6 +153,8 @@ void CmdLineParser::_DisplayUsageInfo(const char *pszFilename) const
     printf("  -b<size>[K|M|G]       block size in bytes or KiB/MiB/GiB [default=64K]\n");
     printf("  -B<offs>[K|M|G|b]     base target offset in bytes or KiB/MiB/GiB/blocks [default=0]\n");
     printf("                          (offset from the beginning of the file)\n");
+    printf("  -BL#,#[,#,...]        List of fixed histogram bucket latencies\n");
+    printf("                          Example: -BL0.1,0.2,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,...,120000.0,600000.0\n");
     printf("  -c<size>[K|M|G|b]     create files of the given size.\n");
     printf("                          Size can be stated in bytes or KiB/MiB/GiB/blocks\n");
     printf("  -C<seconds>           cool down time - duration of the test after measurements finished [default=0s].\n");
@@ -489,6 +491,42 @@ bool CmdLineParser::_ParseAffinity(const char *arg, TimeSpan *pTimeSpan)
     return fOk;
 }
 
+bool CmdLineParser::_ParseHistogramBucketList(const char* arg, Profile* pProfile)
+{
+    bool fOk = true;
+
+    HistogramBucketListPtr histogramBucketList = std::make_shared<HistogramBucketList>();
+    std::stringstream reader(arg);
+
+    float nextBucketValue = 0;
+    histogramBucketList->push_back(nextBucketValue);
+
+    while (!reader.eof())
+    {
+        reader >> nextBucketValue;
+        if (reader.bad() || reader.fail())
+        {
+            fprintf(stderr, "ERROR: Invalid Histogram Bucket List: %s\n", arg);
+            fOk = false;
+        }
+
+        histogramBucketList->push_back(nextBucketValue);
+
+        if (reader.peek() == ',')
+        {
+            reader.ignore();
+        }
+    }
+
+    if (fOk)
+    {
+        histogramBucketList->push_back(std::numeric_limits<float>::max());
+        pProfile->SetHistogramBucketList(histogramBucketList);
+    }
+
+    return fOk;
+}
+
 bool CmdLineParser::_ParseFlushParameter(const char *arg, MemoryMappedIoFlushMode *FlushMode)
 {
     assert(nullptr != arg);
@@ -615,8 +653,15 @@ bool CmdLineParser::_ReadParametersFromCmdLine(const int argc, const char *argv[
             // nop - block size has been taken care of before the loop
             break;
 
-        case 'B':    //base file offset (offset from the beginning of the file)
-            if (*(arg + 1) != '\0')
+        case 'B':    //base file offset (offset from the beginning of the file) or HistogramBucketList
+            if (*(arg + 1) == 'L')
+            {
+                if (!_ParseHistogramBucketList(arg + 2, pProfile))
+                {
+                    fError = true;
+                }
+            }
+            else if (*(arg + 1) != '\0')
             {
                 UINT64 cb;
                 if (_GetSizeInBytes(arg + 1, cb))

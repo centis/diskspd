@@ -235,10 +235,22 @@ void Random::RandBuffer(BYTE *pBuffer, UINT32 ulLength, bool fPseudoRandomOkay)
 
 string Util::DoubleToStringHelper(const double d)
 {
+    return DoubleToStringHelper( d, "%10.3lf");
+}
+
+string Util::DoubleToStringHelper(const double d, const char* fmt)
+{
     char szFloatBuffer[100];
-    sprintf_s(szFloatBuffer, _countof(szFloatBuffer), "%10.3lf", d);
+    sprintf_s(szFloatBuffer, _countof(szFloatBuffer), fmt, d);
 
     return string(szFloatBuffer);
+}
+
+string Util::UnsignedToStringHelper(unsigned d)
+{
+    char szBuffer[100];
+    sprintf_s(szBuffer, _countof(szBuffer), "%d", d);
+    return string(szBuffer);
 }
 
 string ThreadTarget::GetXml() const
@@ -607,6 +619,16 @@ void TimeSpan::MarkFilesAsPrecreated(const vector<string> vFiles)
     }
 }
 
+void Profile::SetHistogramBucketList(ConstHistogramBucketListPtr vHistogramBucketList)
+{
+    _vHistogramBucketList = vHistogramBucketList;
+}
+
+ConstHistogramBucketListPtr Profile::GetHistogramBucketList() const
+{
+    return _vHistogramBucketList;
+}
+
 string Profile::GetXml() const
 {
     string sXml("<Profile>\n");
@@ -658,6 +680,19 @@ string Profile::GetXml() const
         sXml += _fEtwUseSystemTimer ? "<UseSystemTimer>true</UseSystemTimer>\n" : "<UseSystemTimer>false</UseSystemTimer>\n";
         sXml += _fEtwUseCyclesCounter ? "<UseCyclesCounter>true</UseCyclesCounter>\n" : "<UseCyclesCounter>false</UseCyclesCounter>\n";
         sXml += "</ETW>\n";
+    }
+
+    if (_vHistogramBucketList)
+    {
+        sXml += "<FixedHistogramBuckets>\n";
+        for (const auto& bucketValue : *_vHistogramBucketList)
+        {
+            std::string stringBucketTime = (bucketValue == std::numeric_limits<float>::max()) ?
+                "Max" : Util::DoubleToStringHelper(bucketValue, "%.1lf");
+            
+            sXml += "<Bucket>" + stringBucketTime + "</Bucket>\n";
+        }
+        sXml += "</FixedHistogramBuckets>\n";
     }
 
     sXml += "<TimeSpans>\n";

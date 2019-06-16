@@ -40,6 +40,7 @@ public:
 private:
     HRESULT _ParseEtw(IXMLDOMDocument2 *pXmlDoc, Profile *pProfile);
     HRESULT _ParseTimeSpans(IXMLDOMDocument2 *pXmlDoc, Profile *pProfile);
+    HRESULT _ParseFixedHistogramBuckets(IXMLDOMNode* pXmlNode, Profile* pProfile);
     HRESULT _ParseTimeSpan(IXMLDOMNode *pXmlNode, TimeSpan *pTimeSpan);
     HRESULT _ParseTargets(IXMLDOMNode *pXmlNode, TimeSpan *pTimeSpan);
     HRESULT _ParseRandomDataSource(IXMLDOMNode *pXmlNode, Target *pTarget);

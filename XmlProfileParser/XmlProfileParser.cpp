@@ -238,6 +238,12 @@ bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE
 
             if (SUCCEEDED(hr))
             {
+                ConstHistogramBucketListPtr histogramBucketList;
+                hr = _ParseFixedHistogramBuckets(spXmlDoc, pProfile);
+            }
+
+            if (SUCCEEDED(hr))
+            {
                 hr = _ParseTimeSpans(spXmlDoc, pProfile);
             }
         }
@@ -550,6 +556,7 @@ HRESULT XmlProfileParser::_ParseTimeSpan(IXMLDOMNode *pXmlNode, TimeSpan *pTimeS
     {
         hr = _ParseTargets(pXmlNode, pTimeSpan);
     }
+
     return hr;
 }
 
@@ -1101,6 +1108,44 @@ HRESULT XmlProfileParser::_ParseAffinityGroupAssignment(IXMLDOMNode *pXmlNode, T
                     }
                 }
             }
+        }
+    }
+    return hr;
+}
+
+HRESULT XmlProfileParser::_ParseFixedHistogramBuckets(IXMLDOMNode* pXmlNode, Profile* pProfile)
+{
+    CComPtr<IXMLDOMNodeList> spNodeList = nullptr;
+    CComVariant query("//Profile/FixedHistogramBuckets/Bucket");
+    HRESULT hr = pXmlNode->selectNodes(query.bstrVal, &spNodeList);
+    if (SUCCEEDED(hr))
+    {
+        long cNodes;
+        hr = spNodeList->get_length(&cNodes);
+        if (SUCCEEDED(hr))
+        {
+            HistogramBucketListPtr histogramBucketList = std::make_shared<HistogramBucketList>();
+            histogramBucketList->push_back(0);
+
+            for (int i = 0; i < cNodes; i++)
+            {
+                CComPtr<IXMLDOMNode> spNode = nullptr;
+                hr = spNodeList->get_item(i, &spNode);
+                if (SUCCEEDED(hr))
+                {
+                    BSTR bstrText;
+                    hr = spNode->get_text(&bstrText);
+                    if (SUCCEEDED(hr))
+                    {
+                        float nextBucketValue = static_cast<float>(_wtof((wchar_t*)bstrText));
+                        histogramBucketList->push_back(nextBucketValue);
+                        SysFreeString(bstrText);
+                    }
+                }
+            }
+
+            histogramBucketList->push_back(std::numeric_limits<float>::max());
+            pProfile->SetHistogramBucketList(histogramBucketList);
         }
     }
     return hr;

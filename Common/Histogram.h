@@ -37,6 +37,10 @@ SOFTWARE.
 #include <cmath>
 #include <algorithm>
 
+using HistogramBucketList = std::vector<float>;
+using HistogramBucketListPtr = std::shared_ptr<HistogramBucketList>;
+using ConstHistogramBucketListPtr = std::shared_ptr<const HistogramBucketList>;
+
 template<typename T>
 class Histogram
 {
@@ -48,18 +52,18 @@ class Histogram
 #ifdef USE_HASH_TABLE
     std::unordered_map<T,unsigned> _data;
 
-	using SortedDataCache = std::map<T, unsigned>;
-	using SortedDataCachePtr = std::shared_ptr<SortedDataCache>;
+    using SortedDataCache = std::map<T, unsigned>;
+    using SortedDataCachePtr = std::shared_ptr<SortedDataCache>;
 
-	mutable SortedDataCachePtr _sortedDataCache;
+    mutable SortedDataCachePtr _sortedDataCache;
 
-	SortedDataCachePtr _GetSortedData() const
+    SortedDataCachePtr _GetSortedData() const
     {
-		//	Initialize the sorted data cache if this is the first time through, or it was reset by Touch().
-		if (!_sortedDataCache)
-		{
-			_sortedDataCache = std::make_shared<SortedDataCache>(_data.begin(), _data.end());
-		}
+        //	Initialize the sorted data cache if this is the first time through, or it was reset by Touch().
+        if (!_sortedDataCache)
+        {
+            _sortedDataCache = std::make_shared<SortedDataCache>(_data.begin(), _data.end());
+        }
 
         return _sortedDataCache;
     }
@@ -72,15 +76,15 @@ class Histogram
     }
 #endif
 
-	void Touch()
-	{
-		if (_sortedDataCache)
-		{
-			_sortedDataCache.reset();
-		}
-	}
+    void Touch()
+    {
+        if (_sortedDataCache)
+        {
+            _sortedDataCache.reset();
+        }
+    }
 
-	public:
+    public:
 
     Histogram()
         : _samples(0), _sortedDataCache(nullptr)
@@ -91,7 +95,7 @@ class Histogram
         _data.clear();
         _samples = 0;
 
-		Touch();
+        Touch();
     }
 
     void Add(T v)
@@ -99,8 +103,8 @@ class Histogram
         _data[ v ]++;
         _samples++;
 
-		Touch();
-	}
+        Touch();
+    }
 
     void Merge(const Histogram<T> &other)
     {
@@ -110,9 +114,9 @@ class Histogram
         }
 
         _samples += other._samples;
-	
-		Touch();
-	}
+    
+        Touch();
+    }
 
     T GetMin() const
     { 
@@ -148,7 +152,12 @@ class Histogram
     {
         return _samples;
     }
-    
+
+    unsigned GetBucketCount() const
+    {
+        return _data.size();
+    }
+
     T GetPercentile(double p) const 
     {
         // ISSUE-REVIEW
@@ -178,6 +187,28 @@ class Histogram
     T GetPercentile(int p) const 
     {
         return GetPercentile(static_cast<double>(p)/100);
+    }
+
+    unsigned GetHitCount(T rangeMin, T rangeMax) const
+    {
+        unsigned hitCount = 0;
+
+        for (auto value : *_GetSortedData())
+        {
+            if (value.first > rangeMin)
+            {
+                if (value.first <= rangeMax)
+                {
+                    hitCount += value.second;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        return hitCount;
     }
 
     T GetMedian() const 

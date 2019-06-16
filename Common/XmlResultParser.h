@@ -40,13 +40,16 @@ private:
     void _PrintCpuUtilization(const Results& results, const SystemInformation& system);
     void _PrintETW(struct ETWMask ETWMask, struct ETWEventCounters EtwEventCounters);
     void _PrintETWSessionInfo(struct ETWSessionInfo sessionInfo);
-    void _PrintLatencyPercentiles(const Results& results);
+    void _PrintLatencyPercentiles(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
+        const Histogram<float>& totalLatencyHistogram);
+    void _PrintLatencyBuckets(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
+        const Histogram<float>& totalLatencyHistogram, ConstHistogramBucketListPtr histogramBucketList, double fTestDurationInSeconds);
     void _PrintTargetResults(const TargetResults& results);
     void _PrintTargetLatency(const TargetResults& results);
     void _PrintTargetIops(const IoBucketizer& readBucketizer, const IoBucketizer& writeBucketizer, UINT32 bucketTimeInMs);
     void _PrintOverallIops(const Results& results, UINT32 bucketTimeInMs);
     void _PrintIops(const IoBucketizer& readBucketizer, const IoBucketizer& writeBucketizer, UINT32 bucketTimeInMs);
-    void _Print(const char *format, ...);
+    void _Print(const char* format, ...);
 
     string _sResult;
 };

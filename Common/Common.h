@@ -222,6 +222,8 @@ class Util
 {
 public:
     static string DoubleToStringHelper(const double);
+    static string DoubleToStringHelper(const double d, const char* fmt);
+    static string UnsignedToStringHelper(unsigned d);
     template<typename T> static T QuotientCeiling(T dividend, T divisor)
     {
         return (dividend + divisor - 1) / divisor;
@@ -1287,7 +1289,8 @@ public:
         _fEtwUseSystemTimer(false),
         _fEtwUseCyclesCounter(false),
         _resultsFormat(ResultsFormat::Text),
-        _precreateFiles(PrecreateFiles::None)
+        _precreateFiles(PrecreateFiles::None),
+        _vHistogramBucketList(ConstHistogramBucketListPtr(nullptr))
     {
     }
 
@@ -1298,7 +1301,15 @@ public:
 
     void AddTimeSpan(const TimeSpan& timeSpan)
     {
-        _vTimeSpans.push_back(TimeSpan(timeSpan));
+        TimeSpan timeSpanCopy(timeSpan);
+
+        //	A histogram bucket implies measure latency.
+        if (_vHistogramBucketList)
+        {
+            timeSpanCopy.SetMeasureLatency(true);
+        }
+
+        _vTimeSpans.push_back(timeSpanCopy);
     }
 
     const vector<TimeSpan>& GetTimeSpans() const { return _vTimeSpans; }
@@ -1317,6 +1328,9 @@ public:
 
     void SetPrecreateFiles(PrecreateFiles c) { _precreateFiles = c; }
     PrecreateFiles GetPrecreateFiles() const { return _precreateFiles; }
+
+    void SetHistogramBucketList(ConstHistogramBucketListPtr vHistogramBucketList);
+    ConstHistogramBucketListPtr GetHistogramBucketList() const;
 
     //ETW
     void SetEtwEnabled(bool b)          { _fEtwEnabled = b; }
@@ -1360,6 +1374,7 @@ private:
     string _sCmdLine;
     ResultsFormat _resultsFormat;
     PrecreateFiles _precreateFiles;
+    ConstHistogramBucketListPtr _vHistogramBucketList;
 
     //ETW
     bool _fEtwEnabled;

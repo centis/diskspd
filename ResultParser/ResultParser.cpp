@@ -840,6 +840,107 @@ void ResultParser::_PrintLatencyChart(const Histogram<float>& readLatencyHistogr
            fHasReads ? readMax.c_str() : "N/A",
            fHasWrites ? writeMax.c_str() : "N/A",
            totalLatencyHistogram.GetMax()/1000);
+
+    _Print("Read latency histogram bins:  %d\n", readLatencyHistogram.GetBucketCount());
+    _Print("Write latency histogram bins: %d\n", writeLatencyHistogram.GetBucketCount());
+}
+
+void ResultParser::_PrintLatencyBuckets(const Results& results, ConstHistogramBucketListPtr histogramBucketList, double fTestDurationInSeconds)
+{
+    //Print one chart for each target IF more than one target
+    unordered_map<std::string, Histogram<float>> perTargetReadHistogram;
+    unordered_map<std::string, Histogram<float>> perTargetWriteHistogram;
+    unordered_map<std::string, Histogram<float>> perTargetTotalHistogram;
+
+    for (const auto& thread : results.vThreadResults)
+    {
+        for (const auto& target : thread.vTargetResults)
+        {
+            std::string path = target.sPath;
+
+            perTargetReadHistogram[path].Merge(target.readLatencyHistogram);
+
+            perTargetWriteHistogram[path].Merge(target.writeLatencyHistogram);
+
+            perTargetTotalHistogram[path].Merge(target.readLatencyHistogram);
+            perTargetTotalHistogram[path].Merge(target.writeLatencyHistogram);
+        }
+    }
+
+    //Skip if only one target
+    if (perTargetTotalHistogram.size() > 1) {
+        for (auto i : perTargetTotalHistogram)
+        {
+            std::string path = i.first;
+            _Print("\n%s\n", path.c_str());
+            _PrintLatencyBucketsChart(perTargetReadHistogram[path],
+                perTargetWriteHistogram[path],
+                perTargetTotalHistogram[path],
+                histogramBucketList);
+        }
+    }
+
+    //Print one chart for the latencies aggregated across all targets
+    Histogram<float> readLatencyHistogram;
+    Histogram<float> writeLatencyHistogram;
+    Histogram<float> totalLatencyHistogram;
+
+    for (const auto& thread : results.vThreadResults)
+    {
+        for (const auto& target : thread.vTargetResults)
+        {
+            readLatencyHistogram.Merge(target.readLatencyHistogram);
+
+            writeLatencyHistogram.Merge(target.writeLatencyHistogram);
+
+            totalLatencyHistogram.Merge(target.writeLatencyHistogram);
+            totalLatencyHistogram.Merge(target.readLatencyHistogram);
+        }
+    }
+
+    _Print("\ntotal:\n");
+    _PrintLatencyBucketsChart(readLatencyHistogram, writeLatencyHistogram, totalLatencyHistogram, histogramBucketList);
+}
+
+void ResultParser::_PrintLatencyBucketsChart(const Histogram<float>& readLatencyHistogram,
+    const Histogram<float>& writeLatencyHistogram,
+    const Histogram<float>& totalLatencyHistogram,
+    ConstHistogramBucketListPtr histogramBucketList)
+{
+    bool fHasReads = readLatencyHistogram.GetSampleSize() > 0;
+    bool fHasWrites = writeLatencyHistogram.GetSampleSize() > 0;
+
+    _Print(" Bucket (ms) | Read  (count) | Write (count) | Total (count)\n");
+    //      nnnnnnnnnn.n | nnnnnnnnnnnnn | nnnnnnnnnnnnn | nnnnnnnnnnnnn
+    //	    0123456789034|012345678901234|012345678901234|01234567890123
+    _Print("------------------------------------------------------------\n");
+
+    float rangeMinUsec = 0.0;
+    for (auto rangeMaxMilliSeconds : *histogramBucketList)
+    {
+        //	Histogram data is stored in microseconds but histogramBucketList is in milliseconds, so convert it here.
+        float rangeMaxUsec = rangeMaxMilliSeconds * 1000.0f;
+
+        unsigned readBucketCount = readLatencyHistogram.GetHitCount(rangeMinUsec, rangeMaxUsec);
+        std::string stringReadBucketCount = fHasReads ?  Util::UnsignedToStringHelper(readBucketCount) : "N/A";
+
+        unsigned writeBucketCount = writeLatencyHistogram.GetHitCount(rangeMinUsec, rangeMaxUsec);
+        std::string stringWriteBucketCount = fHasWrites ? Util::UnsignedToStringHelper(writeBucketCount) : "N/A";
+
+        unsigned totalReadWriteBucketCount = totalLatencyHistogram.GetHitCount(rangeMinUsec, rangeMaxUsec);
+        std::string stringTotalReadWriteBucketCount = Util::UnsignedToStringHelper(totalReadWriteBucketCount);
+
+        std::string stringBucket = (rangeMaxMilliSeconds == std::numeric_limits<float>::max()) ?
+            "Max" : Util::DoubleToStringHelper(rangeMaxMilliSeconds, "%10.1lf");
+
+        _Print("%12s | %13s | %13s | %13s\n",
+            stringBucket.c_str(),
+            stringReadBucketCount.c_str(),
+            stringWriteBucketCount.c_str(),
+            stringTotalReadWriteBucketCount.c_str() );
+
+        rangeMinUsec = rangeMaxUsec;
+    }
 }
 
 string ResultParser::ParseResults(Profile& profile, const SystemInformation& system, vector<Results> vResults)
@@ -899,6 +1000,13 @@ string ResultParser::ParseResults(Profile& profile, const SystemInformation& sys
             {
                 _Print("\n\n");
                 _PrintLatencyPercentiles(results);
+
+                ConstHistogramBucketListPtr histogramBucketList = profile.GetHistogramBucketList();
+                if (histogramBucketList)
+                {
+                    _Print("\n\n");
+                    _PrintLatencyBuckets(results, histogramBucketList, fTime);
+                }
             }
 
             //etw
