@@ -31,9 +31,10 @@ SOFTWARE.
 
 #include "CmdLineParser.h"
 #include "XmlProfileParser.h"
-#include <assert.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 CmdLineParser::CmdLineParser() :
     _dwBlockSize(64 * 1024),

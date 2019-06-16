@@ -35,19 +35,20 @@ SOFTWARE.
 #endif
 
 #include "Common.h"
+
 #include "IORequestGenerator.h"
+#include "etw.h"
+#include "ThroughputMeter.h"
+#include "OverlappedQueue.h"
+
+#include <Winioctl.h>   //DISK_GEOMETRY
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <Winioctl.h>   //DISK_GEOMETRY
 #include <stddef.h>
-#include <algorithm>
-
-#include "etw.h"
 #include <assert.h>
-#include "ThroughputMeter.h"
-#include "OverlappedQueue.h"
+
+#include <algorithm>
 
 // Flags for RtlFlushNonVolatileMemory
 #ifndef FLUSH_NV_MEMORY_IN_FLAG_NO_DRAIN

@@ -28,7 +28,9 @@ SOFTWARE.
 */
 
 #include "Common.h"
+
 #include "etw.h"
+
 #include <algorithm>
 
 TRACELOGGING_DEFINE_PROVIDER(g_hEtwProvider,

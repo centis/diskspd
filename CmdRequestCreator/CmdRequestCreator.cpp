@@ -31,16 +31,18 @@ SOFTWARE.
 //
 
 #include "Common.h"
+
 #include "CmdRequestCreator.h"
 
-#include <stdlib.h>
-#include <assert.h>
 #include "errors.h"
 #include "CmdLineParser.h"
 #include "XmlProfileParser.h"
 #include "IORequestGenerator.h"
 #include "ResultParser.h"
 #include "XmlResultParser.h"
+
+#include <stdlib.h>
+#include <assert.h>
 
 /*****************************************************************************/
 // global variables

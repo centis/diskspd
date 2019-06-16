@@ -32,10 +32,10 @@ SOFTWARE.
 #define INITGUID        //Include this #define to use SystemTraceControlGuid in Evntrace.h.
 #include "etw.h"
 
+#include "IORequestGenerator.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "IORequestGenerator.h"
 
 // variables declared in IORequestGenerator.cpp
 extern struct ETWEventCounters g_EtwEventCounters;

@@ -31,14 +31,16 @@ SOFTWARE.
 
 #include "MinWindows.h"
 
-#include <TraceLoggingProvider.h>
-#include <TraceLoggingActivity.h>
-#include <ctime>
-#include <vector>
-#include <assert.h>
 #include "Histogram.h"
 #include "IoBucketizer.h"
 #include "ThroughputMeter.h"
+
+#include <TraceLoggingProvider.h>
+#include <TraceLoggingActivity.h>
+#include <assert.h>
+
+#include <ctime>
+#include <vector>
 
 using namespace std;
 

@@ -29,16 +29,15 @@ SOFTWARE.
 
 // ResultParser.cpp : Defines the entry point for the DLL application.
 //
+#include "common.h"
+
 #include "ResultParser.h"
 
-#include "common.h"
+#include <Winternl.h>   //ntdll.dll
+#include <Evntrace.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <Winternl.h>   //ntdll.dll
-
-#include <Evntrace.h>
-
 #include <assert.h>
 
 // TODO: refactor to a single function shared with the XmlResultParser
