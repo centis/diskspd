@@ -790,9 +790,9 @@ bool Profile::Validate(bool fSingleSpec, SystemInformation *pSystem) const
                         }
                     }
                 }
-                else if (target.GetThreadTargets().size() != 0)
+                else if ((target.GetThreadTargets().size() != 0) && (timeSpan.GetThreadCount() == 0))
                 {
-                    fprintf(stderr, "ERROR: ThreadTargets can only be specified when the timespan ThreadCount and RequestCount are specified\n");
+                    fprintf(stderr, "ERROR: ThreadTargets can only be specified when the timespan ThreadCount is specified\n");
                     fOk = false;
                 }
 
