@@ -49,6 +49,7 @@ SOFTWARE.
 #include <assert.h>
 
 #include <algorithm>
+#include <fstream>
 
 // Flags for RtlFlushNonVolatileMemory
 #ifndef FLUSH_NV_MEMORY_IN_FLAG_NO_DRAIN
