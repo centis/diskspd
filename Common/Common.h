@@ -1496,6 +1496,18 @@ typedef struct _ACTIVITY_ID {
 
 C_ASSERT(sizeof(ACTIVITY_ID) == sizeof(GUID));
 
+struct IO_REQUEST_BUFFERS
+{
+    UINT32 ulSize;
+    BYTE* vpReadDataBuffer;
+    BYTE* vpWriteDataBuffer;
+};
+
+struct TARGET_IO_REQUEST_BUFFERS
+{
+    std::vector<IO_REQUEST_BUFFERS> vIORequestBuffers;
+};
+
 class ThreadParameters
 {
 public:
@@ -1515,8 +1527,8 @@ public:
     vector<Target> vTargets;
     vector<HANDLE> vhTargets;
     vector<UINT64> vullFileSizes;
-    vector<size_t> vulReadBufferSize;
-    vector<BYTE *> vpDataBuffers;
+
+    vector<TARGET_IO_REQUEST_BUFFERS> vPerTargetIORequestBuffers;
     vector<IORequest> vIORequest;
     vector<ThroughputMeter> vThroughputMeters;
   

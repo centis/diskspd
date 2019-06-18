@@ -1743,12 +1743,23 @@ cleanup:
     }
 
     // free memory allocated with VirtualAlloc
-    for (auto i = p->vpDataBuffers.begin(); i != p->vpDataBuffers.end(); i++)
+    for (auto itTargetIORequestBuffers = p->vPerTargetIORequestBuffers.begin(); itTargetIORequestBuffers != p->vPerTargetIORequestBuffers.end(); 
+        itTargetIORequestBuffers++)
     {
-        if (nullptr != *i)
+        for (auto itIORequestBuffers = itTargetIORequestBuffers->vIORequestBuffers.begin(); itIORequestBuffers != itTargetIORequestBuffers->vIORequestBuffers.end();
+            itIORequestBuffers++ )
         {
+            if ((*itIORequestBuffers).vpReadDataBuffer != nullptr)
+            {
 #pragma prefast(suppress:6001, "Prefast does not understand this vector will only contain validly allocated buffer pointers")
-            VirtualFree(*i, 0, MEM_RELEASE);
+                VirtualFree((*itIORequestBuffers).vpReadDataBuffer, 0, MEM_RELEASE);
+            }
+
+            if ((*itIORequestBuffers).vpWriteDataBuffer != nullptr)
+            {
+#pragma prefast(suppress:6001, "Prefast does not understand this vector will only contain validly allocated buffer pointers")
+                VirtualFree((*itIORequestBuffers).vpWriteDataBuffer, 0, MEM_RELEASE);
+            }
         }
     }
 

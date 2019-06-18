@@ -962,9 +962,7 @@ bool Profile::Validate(bool fSingleSpec, SystemInformation *pSystem) const
 bool ThreadParameters::AllocateAndFillBufferForTarget(const Target& target)
 {
     bool fOk = true;
-    BYTE *pDataBuffer = nullptr;
     DWORD requestCount = target.GetRequestCount();
-    size_t cbDataBuffer;
 
     // Use global request count
     if (pTimeSpan->GetThreadCount() != 0 &&
@@ -973,41 +971,76 @@ bool ThreadParameters::AllocateAndFillBufferForTarget(const Target& target)
         requestCount = pTimeSpan->GetRequestCount();
     }
 
-    // Create separate read & write buffers so the write content doesn't get overriden by reads
-    cbDataBuffer = (size_t) target.GetBlockSizeInBytes() * requestCount * 2;
-    if (target.GetUseLargePages())
+    bool allocateWriteBuffer = (target.GetWriteRatio() > 0) && (static_cast<size_t>(target.GetRandomDataWriteBufferSize()) == 0);
+    bool allocateReadBuffer = (target.GetWriteRatio() < 100);
+    if (allocateWriteBuffer || allocateReadBuffer)
     {
-        size_t cbMinLargePage = GetLargePageMinimum();
-        size_t cbRoundedSize = (cbDataBuffer + cbMinLargePage - 1) & ~(cbMinLargePage - 1);
-        pDataBuffer = (BYTE *)VirtualAlloc(nullptr, cbRoundedSize, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_EXECUTE_READWRITE);
-    }
-    else
-    {
-        pDataBuffer = (BYTE *)VirtualAlloc(nullptr, cbDataBuffer, MEM_COMMIT, PAGE_READWRITE);
-    }
-
-    fOk = (pDataBuffer != nullptr);
-
-    //fill buffer (useful only for write tests)
-    if (fOk && target.GetWriteRatio() > 0)
-    {
-        if (target.GetZeroWriteBuffers())
+        TARGET_IO_REQUEST_BUFFERS targetIORequestBuffers;
+        for (DWORD ioRequestBufferIndex = 0; (ioRequestBufferIndex < requestCount) && fOk; ioRequestBufferIndex++)
         {
-            memset(pDataBuffer, 0, cbDataBuffer);
-        }
-        else
-        {
-            for (size_t i = 0; i < cbDataBuffer; i++)
+            IO_REQUEST_BUFFERS ioRequestBuffers = { 0, nullptr, nullptr };
+
+            // Create separate read & write buffers so the write content doesn't get overriden by reads
+            ioRequestBuffers.ulSize = (size_t)target.GetBlockSizeInBytes();
+            if (target.GetUseLargePages())
             {
-                pDataBuffer[i] = (BYTE)(i % 256);
+                size_t cbMinLargePage = GetLargePageMinimum();
+                size_t cbRoundedSize = (ioRequestBuffers.ulSize + cbMinLargePage - 1) & ~(cbMinLargePage - 1);
+
+                if (allocateReadBuffer)
+                {
+                    ioRequestBuffers.vpReadDataBuffer = (BYTE*)VirtualAlloc(nullptr, cbRoundedSize, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_EXECUTE_READWRITE);
+                    fOk = (ioRequestBuffers.vpReadDataBuffer != nullptr);
+                }
+
+                if (fOk && allocateWriteBuffer)
+                {
+                    ioRequestBuffers.vpWriteDataBuffer = (BYTE*)VirtualAlloc(nullptr, cbRoundedSize, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_EXECUTE_READWRITE);
+                    fOk = (ioRequestBuffers.vpWriteDataBuffer != nullptr);
+                }
+            }
+            else
+            {
+                if (allocateReadBuffer)
+                {
+                    ioRequestBuffers.vpReadDataBuffer = (BYTE*)VirtualAlloc(nullptr, ioRequestBuffers.ulSize, MEM_COMMIT, PAGE_READWRITE);
+                    fOk = (ioRequestBuffers.vpReadDataBuffer != nullptr);
+                }
+
+
+                if (fOk && allocateWriteBuffer)
+                {
+                    ioRequestBuffers.vpWriteDataBuffer = (BYTE*)VirtualAlloc(nullptr, ioRequestBuffers.ulSize, MEM_COMMIT, PAGE_READWRITE);
+                    fOk = (ioRequestBuffers.vpWriteDataBuffer != nullptr);
+                }
+            }
+
+            //fill buffer (useful only for write tests)
+            if (fOk && allocateWriteBuffer)
+            {
+                if (target.GetZeroWriteBuffers())
+                {
+                    memset(ioRequestBuffers.vpWriteDataBuffer, 0, ioRequestBuffers.ulSize);
+                }
+                else
+                {
+                    for (size_t i = 0; i < ioRequestBuffers.ulSize; i++)
+                    {
+                        ioRequestBuffers.vpWriteDataBuffer[i] = (BYTE)(i % 256);
+                    }
+                }
+            }
+
+            if (fOk)
+            {
+                targetIORequestBuffers.vIORequestBuffers.push_back(ioRequestBuffers);
             }
         }
-    }
 
-    if (fOk)
-    {
-        vpDataBuffers.push_back(pDataBuffer);
-        vulReadBufferSize.push_back(cbDataBuffer / 2);
+        if (fOk)
+        {
+            vPerTargetIORequestBuffers.push_back(targetIORequestBuffers);
+        }
     }
 
     return fOk;
@@ -1015,7 +1048,7 @@ bool ThreadParameters::AllocateAndFillBufferForTarget(const Target& target)
 
 BYTE* ThreadParameters::GetReadBuffer(size_t iTarget, size_t iRequest)
 {
-    return vpDataBuffers[iTarget] + (iRequest * vTargets[iTarget].GetBlockSizeInBytes());
+    return vPerTargetIORequestBuffers[iTarget].vIORequestBuffers[iRequest].vpReadDataBuffer;
 }
 
 BYTE* ThreadParameters::GetWriteBuffer(size_t iTarget, size_t iRequest)
@@ -1026,7 +1059,7 @@ BYTE* ThreadParameters::GetWriteBuffer(size_t iTarget, size_t iRequest)
     size_t cb = static_cast<size_t>(target.GetRandomDataWriteBufferSize());
     if (cb == 0)
     {
-        pBuffer = vpDataBuffers[iTarget] + vulReadBufferSize[iTarget] + (iRequest * vTargets[iTarget].GetBlockSizeInBytes());
+        pBuffer = vPerTargetIORequestBuffers[iTarget].vIORequestBuffers[iRequest].vpWriteDataBuffer;
 
         //
         // This is a very efficient algorithm for generating random content at
