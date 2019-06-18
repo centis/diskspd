@@ -153,7 +153,7 @@ class Histogram
         return _samples;
     }
 
-    unsigned GetBucketCount() const
+    size_t GetBucketCount() const
     {
         return _data.size();
     }
