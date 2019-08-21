@@ -287,6 +287,7 @@
             <xs:restriction base="xs:string">
               <!-- if the same path exists in multiple time spans, the max size will be used -->
               <xs:enumeration value="UseMaxSize"></xs:enumeration>
+              <xs:enumeration value="UseMaxSizeReuseExisting"></xs:enumeration>
               <xs:enumeration value="CreateOnlyFilesWithConstantSizes"></xs:enumeration>
               <xs:enumeration value="CreateOnlyFilesWithConstantOrZeroSizes"></xs:enumeration>
             </xs:restriction>

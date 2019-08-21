@@ -62,13 +62,14 @@ private:
         string sPath;
         UINT64 ullFileSize;
         bool fZeroWriteBuffers;
+        bool fReuseExistingFile;
     };
 
     bool _GenerateRequestsForTimeSpan(const Profile& profile, const TimeSpan& timeSpan, Results& results, struct Synchronization *pSynch);
     void _AbortWorkerThreads(HANDLE hStartEvent, vector<HANDLE>& vhThreads) const;
     void _CloseOpenFiles(vector<HANDLE>& vhFiles) const;
     DWORD _CreateDirectoryPath(const char *path) const;
-    bool _CreateFile(UINT64 ullFileSize, const char *pszFilename, bool fZeroBuffers, bool fVerbose) const;
+    bool _CreateFile(UINT64 ullFileSize, const char *pszFilename, bool fZeroBuffers, bool fReuseExistingFile, bool fVerbose) const;
     void _DisplayFileSizeVerbose(bool fVerbose, UINT64 fsize) const;
     bool _GetActiveGroupsAndProcs() const;
     struct ETWSessionInfo _GetResultETWSession(const EVENT_TRACE_PROPERTIES *pTraceProperties) const;

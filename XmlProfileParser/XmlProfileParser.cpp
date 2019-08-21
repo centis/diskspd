@@ -226,6 +226,10 @@ bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE
                     {
                         pProfile->SetPrecreateFiles(PrecreateFiles::UseMaxSize);
                     }
+                    else if (sCreateFiles == "UseMaxSizeReuseExisting")
+                    {
+                        pProfile->SetPrecreateFiles(PrecreateFiles::UseMaxSizeReuseExisting);
+                    }
                     else if (sCreateFiles == "CreateOnlyFilesWithConstantSizes")
                     {
                         pProfile->SetPrecreateFiles(PrecreateFiles::OnlyFilesWithConstantSizes);

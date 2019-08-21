@@ -1861,8 +1861,30 @@ DWORD IORequestGenerator::_CreateDirectoryPath(const char *pszPath) const
 /*****************************************************************************/
 // create a file of the given size
 //
-bool IORequestGenerator::_CreateFile(UINT64 ullFileSize, const char *pszFilename, bool fZeroBuffers, bool fVerbose) const
+bool IORequestGenerator::_CreateFile(UINT64 ullFileSize, const char *pszFilename, bool fZeroBuffers, bool fReuseExistingFile, bool fVerbose) const
 {
+    if (fReuseExistingFile)
+    {
+        HANDLE hFile = CreateFile(pszFilename,
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr);
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+            LARGE_INTEGER liFileSize;
+            if (GetFileSizeEx(hFile, &liFileSize))
+            {
+                if (liFileSize.QuadPart == (LONGLONG)ullFileSize)
+                {
+                    PrintError("Re-using existing file: %s\n", pszFilename);
+                    return true;
+                }
+            }
+        }
+    }
     bool fSlowWrites = false;
     printfv(fVerbose, "Creating file '%s' of size %I64u.\n", pszFilename, ullFileSize);
 
@@ -1879,7 +1901,7 @@ bool IORequestGenerator::_CreateFile(UINT64 ullFileSize, const char *pszFilename
     DWORD dwError = _CreateDirectoryPath(pszFilename);
     if (dwError != ERROR_SUCCESS && dwError != ERROR_NOT_SUPPORTED)
     {
-        PrintError("WARNING: Could not create intermediate directory (error code: %u)\n", dwError);
+        PrintError("WARNING: Could not create intermediate directory for file: %s (error code: %u)\n", pszFilename, dwError);
     }
 
     // create handle to the file
@@ -1892,7 +1914,7 @@ bool IORequestGenerator::_CreateFile(UINT64 ullFileSize, const char *pszFilename
                               nullptr);
     if (INVALID_HANDLE_VALUE == hFile)
     {
-        PrintError("Could not create the file (error code: %u)\n", GetLastError());
+        PrintError("Could not create the file: %s (error code: %u)\n", pszFilename, GetLastError());
         return false;
     }
 
@@ -2092,7 +2114,7 @@ bool IORequestGenerator::_PrecreateFiles(Profile& profile) const
         vector<string> vCreatedFiles;
         for (auto file : vFilesToCreate)
         {
-            fOk = _CreateFile(file.ullFileSize, file.sPath.c_str(), file.fZeroWriteBuffers, profile.GetVerbose());
+            fOk = _CreateFile(file.ullFileSize, file.sPath.c_str(), file.fZeroWriteBuffers, file.fReuseExistingFile, profile.GetVerbose());
             if (!fOk)
             {
                 break;
@@ -2212,7 +2234,7 @@ bool IORequestGenerator::_GenerateRequestsForTimeSpan(const Profile& profile, co
             }
 
             //create only regular files
-            if (!_CreateFile(i->GetFileSize(), str.c_str(), i->GetZeroWriteBuffers(), profile.GetVerbose()))
+            if (!_CreateFile(i->GetFileSize(), str.c_str(), i->GetZeroWriteBuffers(), false, profile.GetVerbose()))
             {
                 return false;
             }
@@ -2768,6 +2790,7 @@ vector<struct IORequestGenerator::CreateFileParameters> IORequestGenerator::_Get
             createFileParameters.sPath = target.GetPath();
             createFileParameters.ullFileSize = target.GetFileSize();
             createFileParameters.fZeroWriteBuffers = target.GetZeroWriteBuffers();
+            createFileParameters.fReuseExistingFile = false;
 
             filesMap[createFileParameters.sPath].push_back(createFileParameters);
         }
@@ -2816,6 +2839,11 @@ vector<struct IORequestGenerator::CreateFileParameters> IORequestGenerator::_Get
                 file.ullFileSize = ullMaxSize;
                 if (filter == PrecreateFiles::UseMaxSize)
                 {
+                    vFilesToCreate.push_back(file);
+                }
+                else if (filter == PrecreateFiles::UseMaxSizeReuseExisting)
+                {
+                    file.fReuseExistingFile = true;
                     vFilesToCreate.push_back(file);
                 }
                 else if ((filter == PrecreateFiles::OnlyFilesWithConstantSizes) && fConstantSize && !fHasZeroSizes)

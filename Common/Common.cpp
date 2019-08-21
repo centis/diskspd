@@ -660,6 +660,10 @@ string Profile::GetXml() const
     {
         sXml += "<PrecreateFiles>UseMaxSize</PrecreateFiles>\n";
     }
+    else if (_precreateFiles == PrecreateFiles::UseMaxSizeReuseExisting)
+    {
+        sXml += "<PrecreateFiles>UseMaxSizeReuseExisting</PrecreateFiles>\n";
+    }
     else if (_precreateFiles == PrecreateFiles::OnlyFilesWithConstantSizes)
     {
         sXml += "<PrecreateFiles>CreateOnlyFilesWithConstantSizes</PrecreateFiles>\n";

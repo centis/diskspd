@@ -1265,6 +1265,7 @@ enum class PrecreateFiles
 {
     None,
     UseMaxSize,
+    UseMaxSizeReuseExisting,
     OnlyFilesWithConstantSizes,
     OnlyFilesWithConstantOrZeroSizes
 };
