@@ -42,7 +42,15 @@ SOFTWARE.
 #include <ctime>
 #include <vector>
 
-using namespace std;
+//  Make the commonly used names visible in the global namespace.  We specifically don't expose "namespace std" because there are
+//  several conflicts with Windows name.  For example, C++17 defines a "byte" type and so does rpcndr.h.
+using std::string;
+using std::vector;
+using std::map;
+using std::unordered_map;
+using std::pair;
+using std::make_pair;
+using std::to_string;
 
 TRACELOGGING_DECLARE_PROVIDER(g_hEtwProvider);
 
@@ -1540,7 +1548,7 @@ public:
   
     // For vanilla sequential access (-s):
     // Private per-thread offsets, incremented directly, indexed to number of targets
-    vector<UINT64> vullPrivateSequentialOffsets; 
+    vector<UINT64> vullPrivateSequentialOffsets;
 
     // For interlocked sequential access (-si):
     // Pointers to offsets shared between threads, incremented with an interlocked op

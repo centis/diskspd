@@ -51,10 +51,8 @@ SOFTWARE.
 #include <algorithm>
 #include <fstream>
 
-//  CBTODO: Update project files to C++17 and remove this stuff.
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 
 // Flags for RtlFlushNonVolatileMemory
 #ifndef FLUSH_NV_MEMORY_IN_FLAG_NO_DRAIN
@@ -932,7 +930,7 @@ static bool doWorkUsingSynchronousIO(ThreadParameters *p)
                 ThroughputMeter *pThroughputMeter = &p->vThroughputMeters[iTarget];
 
                 DWORD dwSleepTime = pThroughputMeter->GetSleepTime();
-                dwMinSleepTime = min(dwMinSleepTime, dwSleepTime);
+                dwMinSleepTime = std::min(dwMinSleepTime, dwSleepTime);
                 if (pThroughputMeter->IsRunning() && dwSleepTime > 0)
                 {
                     continue;
@@ -1007,7 +1005,7 @@ static bool doWorkUsingIOCompletionPorts(ThreadParameters *p, HANDLE hCompletion
                 DWORD dwSleepTime = pThroughputMeter->GetSleepTime();
                 if (pThroughputMeter->IsRunning() && dwSleepTime > 0)
                 {
-                    dwMinSleepTime = min(dwMinSleepTime, dwSleepTime);
+                    dwMinSleepTime = std::min(dwMinSleepTime, dwSleepTime);
                     overlappedQueue.Add(pReadyOverlapped);
                     continue;
                 }
