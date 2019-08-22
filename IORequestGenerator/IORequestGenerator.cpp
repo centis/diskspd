@@ -51,6 +51,11 @@ SOFTWARE.
 #include <algorithm>
 #include <fstream>
 
+//  CBTODO: Update project files to C++17 and remove this stuff.
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 // Flags for RtlFlushNonVolatileMemory
 #ifndef FLUSH_NV_MEMORY_IN_FLAG_NO_DRAIN
 #define FLUSH_NV_MEMORY_IN_FLAG_NO_DRAIN    (0x00000001)
@@ -2159,9 +2164,28 @@ bool IORequestGenerator::GenerateRequests(Profile& profile, IResultParser& resul
         }
         else
         {
-            std::ofstream out(sResultFilePath);
-            out << sResults;
-            out.close();
+            std::string resultFileDirectory = fs::path(sResultFilePath).remove_filename().string();
+            if (!fs::exists(resultFileDirectory))
+            {
+                fs::create_directories(resultFileDirectory);
+            }
+
+            if (!fs::exists(resultFileDirectory))
+            {
+                PrintError("Failed to create results directory: %s", resultFileDirectory.c_str());
+                fOk = false;
+            }
+            else if (!fs::is_directory(resultFileDirectory))
+            {
+                PrintError("Failed to create results directory because a file with the same name exists: %s", resultFileDirectory.c_str());
+                fOk = false;
+            }
+            else
+            {
+                std::ofstream out(sResultFilePath);
+                out << sResults;
+                out.close();
+            }
         }
     }
 
