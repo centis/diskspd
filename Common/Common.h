@@ -1276,6 +1276,7 @@ public:
     Profile() :
         _fVerbose(false),
         _dwProgress(0),
+        _fHighPrecisionOutput(false),
         _fEtwEnabled(false),
         _fEtwProcess(false),
         _fEtwThread(false),
@@ -1320,6 +1321,9 @@ public:
 
     void SetProgress(DWORD dwProgress) { _dwProgress = dwProgress; }
     DWORD GetProgress() const { return _dwProgress; }
+
+    void SetHighPrecisionOutput(bool fHighPrecisionOutput) { _fHighPrecisionOutput = fHighPrecisionOutput; }
+    bool GetHighPrecisionOutput() const { return _fHighPrecisionOutput; }
 
     void SetCmdLine(string sCmdLine) { _sCmdLine = sCmdLine; }
     string GetCmdLine() const { return _sCmdLine; };
@@ -1375,6 +1379,7 @@ private:
     vector<TimeSpan>_vTimeSpans;
     bool _fVerbose;
     DWORD _dwProgress;
+    bool _fHighPrecisionOutput;
     string _sCmdLine;
     ResultsFormat _resultsFormat;
     std::string _sResultFilePath;

@@ -31,25 +31,49 @@ SOFTWARE.
 
 #include "Common.h"
 
-class XmlResultParser: public IResultParser
+class XmlResultParser : public IResultParser
 {
 public:
+    XmlResultParser(const std::string& millisecondsFormatString, const std::string& secondsFormatString, const std::string& percentFormatString);
     string ParseResults(Profile& profile, const SystemInformation& system, vector<Results> vResults);
 
 private:
-    void _PrintCpuUtilization(const Results& results, const SystemInformation& system);
-    void _PrintETW(struct ETWMask ETWMask, struct ETWEventCounters EtwEventCounters);
-    void _PrintETWSessionInfo(struct ETWSessionInfo sessionInfo);
-    void _PrintLatencyPercentiles(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
-        const Histogram<float>& totalLatencyHistogram);
-    void _PrintLatencyBuckets(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
-        const Histogram<float>& totalLatencyHistogram, ConstHistogramBucketListPtr histogramBucketList, double fTestDurationInSeconds);
-    void _PrintTargetResults(const TargetResults& results);
-    void _PrintTargetLatency(const TargetResults& results);
-    void _PrintTargetIops(const IoBucketizer& readBucketizer, const IoBucketizer& writeBucketizer, UINT32 bucketTimeInMs);
-    void _PrintOverallIops(const Results& results, UINT32 bucketTimeInMs);
-    void _PrintIops(const IoBucketizer& readBucketizer, const IoBucketizer& writeBucketizer, UINT32 bucketTimeInMs);
-    void _Print(const char* format, ...);
 
-    string _sResult;
+    void _Output(const char* format, ...);
+    void _OutputValue(const std::string& name, const std::string& value);
+    
+    void _OutputValue(const std::string& name, int value);
+    void _OutputValue(const std::string& name, unsigned int value);
+    void _OutputValue(const std::string& name, long value);
+    void _OutputValue(const std::string& name, unsigned long value);
+    void _OutputValue(const std::string& name, unsigned long long value);
+
+    void _OutputValue(const std::string& name, double value, const std::string& formatString);
+
+    void _OutputValueInPercent(const std::string& name, double value);
+    void _OutputValueInSeconds(const std::string& name, double value);
+    void _OutputValueMilliseconds(const std::string& name, double value);
+    void _OutputValueInMilliseconds(const std::string& name, double value);
+    void _OutputLatencyInMilliseconds(const std::string& name, double value);
+
+    void _OutputCpuUtilization(const Results& results, const SystemInformation& system);
+    void _OutputETW(struct ETWMask ETWMask, struct ETWEventCounters EtwEventCounters);
+    void _OutputETWSessionInfo(struct ETWSessionInfo sessionInfo);
+    void _OutputLatencyPercentiles(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
+        const Histogram<float>& totalLatencyHistogram);
+    void _OutputLatencyBuckets(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
+        const Histogram<float>& totalLatencyHistogram, ConstHistogramBucketListPtr histogramBucketList, double fTestDurationInSeconds);
+    void _OutputTargetResults(const TargetResults& results, bool fMeasureLatency, ConstHistogramBucketListPtr histogramBucketList,
+        double fTestDurationInSeconds, bool fCalculateIopsStdDev, UINT32 ulIoBucketDurationInMilliseconds);
+    void _OutputLatencySummary(const Histogram<float>& readLatencyHistogram, const Histogram<float>& writeLatencyHistogram,
+        const Histogram<float>& totalLatencyHistogram, ConstHistogramBucketListPtr histogramBucketList, double fTestDurationInSeconds);
+    void _OutputLatencySummary(const Histogram<float>& latencyHistogram, const std::string& latencyHistogramName);
+    void _OutputTargetIops(const IoBucketizer& readBucketizer, const IoBucketizer& writeBucketizer, UINT32 bucketTimeInMs);
+    void _OutputOverallIops(const Results& results, UINT32 bucketTimeInMs);
+    void _OutputIops(const IoBucketizer& readBucketizer, const IoBucketizer& writeBucketizer, UINT32 bucketTimeInMs);
+
+    std::string _sResult;
+    std::string _sMillisecondsFormatString;
+    std::string _sSecondsFormatString;
+    std::string _sPercentFormatString;
 };

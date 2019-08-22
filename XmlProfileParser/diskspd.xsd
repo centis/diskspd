@@ -237,6 +237,9 @@
         <!-- DWORD dwProgress -->
         <xs:element name="Progress" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
 
+        <!-- BOOL bHighPrecisionOutput -->
+        <xs:element name="HighPrecisionOutput" type="xs:boolean" minOccurs="0" maxOccurs="1"></xs:element>
+
         <xs:element name="ResultFormat" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
             <xs:restriction base="xs:string">

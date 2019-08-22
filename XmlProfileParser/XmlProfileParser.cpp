@@ -198,6 +198,16 @@ bool XmlProfileParser::ParseFile(const char *pszPath, Profile *pProfile, HMODULE
 
             if (SUCCEEDED(hr))
             {
+                bool fHighPrecisionOutput;
+                hr = _GetHighPrecisionOutput(spXmlDoc, &fHighPrecisionOutput);
+                if (SUCCEEDED(hr) && (hr != S_FALSE))
+                {
+                    pProfile->SetHighPrecisionOutput(fHighPrecisionOutput);
+                }
+            }
+
+            if (SUCCEEDED(hr))
+            {
                 string sResultFormat;
                 hr = _GetString(spXmlDoc, "//Profile/ResultFormat", &sResultFormat);
                 if (SUCCEEDED(hr) && (hr != S_FALSE) && sResultFormat == "xml")
@@ -1283,4 +1293,8 @@ HRESULT XmlProfileParser::_GetVerbose(IXMLDOMDocument2 *pXmlDoc, bool *pfVerbose
 HRESULT XmlProfileParser::_GetProgress(IXMLDOMDocument2 *pXmlDoc, DWORD *pdwProgress)
 {
     return _GetDWORD(pXmlDoc, "//Profile/Progress", pdwProgress);
+}
+HRESULT XmlProfileParser::_GetHighPrecisionOutput(IXMLDOMDocument2* pXmlDoc, bool* pfHighPrecisionOutput)
+{
+    return _GetBool(pXmlDoc, "//Profile/HighPrecisionOutput", pfHighPrecisionOutput);
 }

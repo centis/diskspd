@@ -107,6 +107,29 @@ void TestFinished()
     }
 }
 
+static std::shared_ptr<IResultParser> GetResultParser(const Profile& profile)
+{
+    std::shared_ptr<IResultParser> resultParser;
+
+    if (profile.GetResultsFormat() == ResultsFormat::Xml)
+    {
+        if (profile.GetHighPrecisionOutput())
+        {
+            resultParser = std::make_shared<XmlResultParser>("%f", "%.2f", "%.2f");
+        }
+        else
+        {
+            resultParser = std::make_shared<XmlResultParser>("%.3f", "%.2f", "%.2f");
+        }
+    }
+    else
+    {
+        resultParser = std::make_shared<ResultParser>();
+    }
+
+    return resultParser;
+}
+
 /*****************************************************************************/
 int __cdecl main(int argc, const char* argv[])
 {
@@ -159,17 +182,7 @@ int __cdecl main(int argc, const char* argv[])
     //
     // call IO request generator
     //
-    ResultParser resultParser;
-    XmlResultParser xmlResultParser;
-    IResultParser *pResultParser = nullptr;
-    if (profile.GetResultsFormat() == ResultsFormat::Xml)
-    {
-        pResultParser = &xmlResultParser;
-    }
-    else
-    {
-        pResultParser = &resultParser;
-    }
+    std::shared_ptr<IResultParser> pResultParser = GetResultParser(profile);
 
     IORequestGenerator ioGenerator;
     if (!ioGenerator.GenerateRequests(profile, *pResultParser, (PRINTF)PrintOut, (PRINTF)PrintError, (PRINTF)PrintOut, &synch))
@@ -198,7 +211,7 @@ int __cdecl main(int argc, const char* argv[])
         CloseHandle(g_hEventStarted);
     }
     if( NULL != g_hEventFinished )
-    {
+    {   
         CloseHandle(g_hEventFinished);
     }
 

@@ -2323,7 +2323,7 @@ bool IORequestGenerator::_GenerateRequestsForTimeSpan(const Profile& profile, co
         }
 
         // each thread has a different random seed
-        Random *pRand = new Random(timeSpan.GetRandSeed() + iThread);
+        Random* pRand = new Random(static_cast<UINT64>(timeSpan.GetRandSeed()) + iThread);
         if (nullptr == pRand)
         {
             PrintError("FATAL ERROR: could not allocate memory\n");
