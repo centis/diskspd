@@ -41,6 +41,9 @@ using HistogramBucketList = std::vector<float>;
 using HistogramBucketListPtr = std::shared_ptr<HistogramBucketList>;
 using ConstHistogramBucketListPtr = std::shared_ptr<const HistogramBucketList>;
 
+/****************************************************************************************************************************************************
+    CBTODO: Histograms consumers should use a specific type, like PerfTimer, rather than float/double to minimze conversion errors.
+****************************************************************************************************************************************************/
 template<typename T>
 class Histogram
 {
@@ -122,12 +125,11 @@ class Histogram
     { 
         T value = std::numeric_limits<T>::max();
 
-        for (auto i : _data)
+        auto sortedData = _GetSortedData();
+        auto iter = sortedData->begin();
+        if (iter != sortedData->end())
         {
-            if (i.first < value)
-            {
-                value = i.first;
-            }
+            value = iter->first;
         }
 
         return value;
@@ -137,12 +139,11 @@ class Histogram
     {
         T value = std::numeric_limits<T>::min();
 
-        for (auto i : _data)
+        auto sortedData = _GetSortedData();
+        auto iter = sortedData->rbegin();
+        if (iter != sortedData->rend())
         {
-            if (i.first > value)
-            {
-                value = i.first;
-            }
+            value = iter->first;
         }
 
         return value;

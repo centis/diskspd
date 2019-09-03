@@ -118,7 +118,8 @@ void XmlResultParser::_OutputTargetResults(const TargetResults& results,
     // TODO: results.readBucketizer;
     // TODO: results.writeBucketizer;
 
-    _OutputValue("Path", results.sPath.c_str());
+    _OutputValue("Id", results.iTargetID);
+    _OutputValue("Path", results.sPath);
     _OutputValue("BytesCount", results.ullBytesCount);
     _OutputValue("FileSize", results.ullFileSize);
     _OutputValue("IOCount", results.ullIOCount);
@@ -179,6 +180,8 @@ void XmlResultParser::_OutputLatencySummary(const Histogram<float>& latencyHisto
     _OutputValue(latencyHistogramName + "LatencyHistogramBins", latencyHistogram.GetBucketCount());
     _OutputLatencyInMilliseconds(latencyHistogramName + "Average", latencyHistogram.GetAvg());
     _OutputLatencyInMilliseconds(latencyHistogramName + "Stdev", latencyHistogram.GetStandardDeviation());
+    _OutputLatencyInMilliseconds(latencyHistogramName + "Min", latencyHistogram.GetMin());
+    _OutputLatencyInMilliseconds(latencyHistogramName + "Max", latencyHistogram.GetMax());
 }
 
 void XmlResultParser::_OutputTargetIops(const IoBucketizer& readBucketizer,
@@ -635,6 +638,8 @@ string XmlResultParser::ParseResults(Profile& profile,
 
             if (timeSpan.GetMeasureLatency())
             {
+                std::map<int, std::shared_ptr<TargetIDGroup>> targetIDGroups;
+
                 Histogram<float> readLatencyHistogram;
                 Histogram<float> writeLatencyHistogram;
                 Histogram<float> totalLatencyHistogram;
@@ -643,6 +648,16 @@ string XmlResultParser::ParseResults(Profile& profile,
                 {
                     for (const auto& target : thread.vTargetResults)
                     {
+                        auto it = targetIDGroups.find(target.iTargetID);
+                        if (it != targetIDGroups.end())
+                        {
+                            (*it).second->Add(target);
+                        }
+                        else
+                        {
+                            targetIDGroups[target.iTargetID] = std::make_shared<TargetIDGroup>(target);
+                        }
+
                         readLatencyHistogram.Merge(target.readLatencyHistogram);
                         writeLatencyHistogram.Merge(target.writeLatencyHistogram);
                         totalLatencyHistogram.Merge(target.writeLatencyHistogram);
@@ -652,10 +667,18 @@ string XmlResultParser::ParseResults(Profile& profile,
 
                 _OutputLatencySummary(readLatencyHistogram, writeLatencyHistogram, totalLatencyHistogram, profile.GetHistogramBucketList(), fTime);
 
-                ConstHistogramBucketListPtr histogramBucketList = profile.GetHistogramBucketList();
-                if (histogramBucketList)
+                if (targetIDGroups.size() > 1)
                 {
-                    _OutputLatencyBuckets(readLatencyHistogram, writeLatencyHistogram, totalLatencyHistogram, histogramBucketList, fTime);
+                    for (const auto& targetIDGroup : targetIDGroups)
+                    {
+                        if (targetIDGroup.second->GetCount() > 1)
+                        {
+                            _Output("<TargetIDGroup>\n");
+                            _OutputTargetResults(*(targetIDGroup.second->GetTargetResults()), timeSpan.GetMeasureLatency(), profile.GetHistogramBucketList(), fTime,
+                                timeSpan.GetCalculateIopsStdDev(), timeSpan.GetIoBucketDurationInMilliseconds());
+                            _Output("</TargetIDGroup>\n");
+                        }
+                    }
                 }
             }
 

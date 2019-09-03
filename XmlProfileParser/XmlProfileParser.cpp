@@ -601,7 +601,7 @@ HRESULT XmlProfileParser::_ParseTargets(IXMLDOMNode *pXmlNode, TimeSpan *pTimeSp
                 hr = spNodeList->get_item(i, &spNode);
                 if (SUCCEEDED(hr))
                 {
-                    Target target;
+                    Target target(i);
                     _ParseTarget(spNode, &target);
                     pTimeSpan->AddTarget(target);
                 }
@@ -1294,6 +1294,7 @@ HRESULT XmlProfileParser::_GetProgress(IXMLDOMDocument2 *pXmlDoc, DWORD *pdwProg
 {
     return _GetDWORD(pXmlDoc, "//Profile/Progress", pdwProgress);
 }
+
 HRESULT XmlProfileParser::_GetHighPrecisionOutput(IXMLDOMDocument2* pXmlDoc, bool* pfHighPrecisionOutput)
 {
     return _GetBool(pXmlDoc, "//Profile/HighPrecisionOutput", pfHighPrecisionOutput);

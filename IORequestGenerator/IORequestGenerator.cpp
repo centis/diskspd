@@ -1552,6 +1552,7 @@ DWORD WINAPI threadFunc(LPVOID cookie)
     p->pResults->vTargetResults.resize(p->vTargets.size());
     for (size_t i = 0; i < p->vullFileSizes.size(); i++)
     {
+        p->pResults->vTargetResults[i].iTargetID = p->vTargets[i].GetTargetID();
         p->pResults->vTargetResults[i].sPath = p->vTargets[i].GetPath();
         p->pResults->vTargetResults[i].ullFileSize = p->vullFileSizes[i];
         if(fCalculateIopsStdDev) 

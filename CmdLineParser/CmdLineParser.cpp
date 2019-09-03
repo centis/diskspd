@@ -570,14 +570,16 @@ bool CmdLineParser::_ReadParametersFromCmdLine(const int argc, const char *argv[
     // create targets
     vector<Target> vTargets;
     int iFirstFile = -1;
+    int iTargetID = 0;
     for (int i = 1; i < argc; i++)
     {
         if (argv[i][0] != '-' && argv[i][0] != '/')
         {
             iFirstFile = i;
-            Target target;
+            Target target(iTargetID);
             target.SetPath(argv[i]);
             vTargets.push_back(target);
+            iTargetID++;
         }
     }
 
