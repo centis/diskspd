@@ -63,7 +63,12 @@ TRACELOGGING_DECLARE_PROVIDER(g_hEtwProvider);
 //
 //      Monday, June 16, 2014 12:00:00 AM
 
-#define DISKSPD_RELEASE_TAG ""
+#ifndef NDEBUG
+#define DISKSPD_RELEASE_TAG "PerfEngDebug"
+#else
+#define DISKSPD_RELEASE_TAG "PerfEng"
+#endif // NDEBUG
+
 #define DISKSPD_REVISION    "a"
 
 #define DISKSPD_MAJOR       2
@@ -249,6 +254,7 @@ class TargetResults
 {
 public:
     TargetResults() :
+        iTargetID(-1),
         ullFileSize(0),
         ullBytesCount(0),
         ullIOCount(0),
@@ -258,6 +264,54 @@ public:
         ullWriteIOCount(0)
     {
 
+    }
+
+    TargetResults(const TargetResults& rhs) :
+        iTargetID(rhs.iTargetID),
+        sPath(rhs.sPath),
+        ullFileSize(rhs.ullFileSize),
+        ullBytesCount(rhs.ullBytesCount),
+        ullIOCount(rhs.ullIOCount),
+        ullReadBytesCount(rhs.ullReadBytesCount),
+        ullReadIOCount(rhs.ullReadIOCount),
+        ullWriteBytesCount(rhs.ullWriteBytesCount),
+        ullWriteIOCount(rhs.ullWriteIOCount),
+        readLatencyHistogram(rhs.readLatencyHistogram),
+        writeLatencyHistogram(rhs.writeLatencyHistogram),
+        readBucketizer(rhs.readBucketizer),
+        writeBucketizer(rhs.writeBucketizer)
+    {
+    }
+
+    void Add(const TargetResults& targetResults)
+    {
+        if (iTargetID != targetResults.iTargetID)
+        {
+            throw std::runtime_error("Invalid TargetID added to TargetResultsGroup");
+        }
+
+        if (sPath.compare(targetResults.sPath) != 0)
+        {
+            throw std::runtime_error("Invalid sPath added to TargetResultsGroup");
+        }
+
+        if (ullFileSize  != targetResults.ullFileSize)
+        {
+            throw std::runtime_error("Invalid ullFileSize added to TargetResultsGroup");
+        }
+
+        ullBytesCount += targetResults.ullBytesCount;
+        ullIOCount += targetResults.ullIOCount;
+        ullReadBytesCount += targetResults.ullReadBytesCount;
+        ullReadIOCount += targetResults.ullReadIOCount;
+        ullWriteBytesCount += targetResults.ullWriteBytesCount;
+        ullWriteIOCount += targetResults.ullWriteIOCount;
+
+        readLatencyHistogram.Merge(targetResults.readLatencyHistogram);
+        writeLatencyHistogram.Merge(targetResults.writeLatencyHistogram);
+
+        readBucketizer.Merge(targetResults.readBucketizer);
+        writeBucketizer.Merge(targetResults.writeBucketizer);
     }
 
     void Add(DWORD dwBytesTransferred,
@@ -322,6 +376,7 @@ public:
         ullIOCount++;                                   // update completed I/O operations counter
     }
 
+    int iTargetID;
     string sPath;
     UINT64 ullFileSize;         //size of the file
     UINT64 ullBytesCount;       //number of accessed bytes
@@ -336,6 +391,36 @@ public:
 
     IoBucketizer readBucketizer;
     IoBucketizer writeBucketizer;
+};
+
+class TargetIDGroup
+{
+public:
+    TargetIDGroup(const TargetResults& _targetResults)
+    {
+        mCount = 1;
+        mTargetResults = std::make_shared<TargetResults>(_targetResults);
+    }
+
+    void Add(const TargetResults& _targetResults)
+    {
+        mCount++;
+        mTargetResults->Add(_targetResults);
+    }
+
+    int GetCount() const
+    {
+        return mCount;
+    }
+
+    std::shared_ptr<TargetResults> GetTargetResults() const
+    {
+        return mTargetResults;
+    }
+
+private:
+    int mCount;
+    std::shared_ptr<TargetResults> mTargetResults;
 };
 
 class ThreadResults
@@ -886,7 +971,8 @@ class Target
 {
 public:
 
-    Target() :
+    Target(int targetID) :
+        _iTargetID(targetID),
         _dwBlockSize(64 * 1024),
         _dwRequestCount(2),
         _ullBlockAlignment(64 * 1024),
@@ -926,6 +1012,8 @@ public:
         _pRandomDataWriteBuffer(nullptr)
     {
     }
+
+    int GetTargetID() const { return _iTargetID; }
 
     void SetPath(string sPath) { _sPath = sPath; }
     string GetPath() const { return _sPath; }
@@ -1098,6 +1186,7 @@ public:
     }
 
 private:
+    int _iTargetID;
     string _sPath;
     DWORD _dwBlockSize;
     DWORD _dwRequestCount;      // TODO: change the name to something more descriptive (OutstandingRequestCount?)
